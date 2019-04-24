@@ -61,30 +61,31 @@ def dir_threshold(img):
 def binary_image(img):
     img = np.copy(img)
     # Convert to HLS color space and separate the V channel
-    # r_channel = img[:, :, 1]
+    r_channel = img[:, :, 1]
 
     hls = cv2.cvtColor(img, cv2.COLOR_BGR2HLS)
     l_channel = hls[:, :, 1]
     s_channel = hls[:, :, 2]
     # Sobel x
-    sobelx = cv2.Sobel(l_channel, cv2.CV_64F, 1, 0, ksize=cfg.sobel_kernel_size)  # Take the derivative in x
-    abs_sobelx = np.absolute(sobelx)  # Absolute x derivative to accentuate lines away from horizontal
-    scaled_sobel = np.uint8(255 * abs_sobelx / np.max(abs_sobelx))
 
-    # rxbinary = np.zeros_like(r_channel)
-    # rxbinary[(r_channel >= 200) & (r_channel <= 255)] = 1
+    gradx = abs_sobel_thresh(l_channel, orient='x')
+    #grady = abs_sobel_thresh(cv2.cvtColor(img, cv2.COLOR_BGR2GRAY), orient='y')
+    #mag_binary = mag_thresh(cv2.cvtColor(img, cv2.COLOR_BGR2GRAY))
+    #dir_binary = dir_threshold(cv2.cvtColor(img, cv2.COLOR_BGR2GRAY))
+    thresh = (200, 255)
+    binary = np.zeros_like(r_channel)
+    binary[(r_channel > 200) & (r_channel <= 255)] = 1
 
-    # Threshold x gradient
-    sxbinary = np.zeros_like(scaled_sobel)
-    sxbinary[(scaled_sobel >= cfg.sxy_thresh[0]) & (scaled_sobel <= cfg.sxy_thresh[1])] = 1
-
+    combined = np.zeros_like(gradx)
+    #combined[((gradx == 1) | ((mag_binary == 1) & (dir_binary == 1)))] = 1
+    combined[((gradx == 1) & (binary == 1))] = 1
     # Threshold color channel
     s_binary = np.zeros_like(s_channel)
     s_binary[(s_channel >= cfg.s_thresh[0]) & (s_channel <= cfg.s_thresh[1])] = 1
 
     # Stack each channel
     # color_binary = np.dstack((rxbinary, sxbinary, s_binary)) * 255
-    color_binary = np.dstack((np.zeros_like(sxbinary), sxbinary, s_binary)) * 255
+    color_binary = np.dstack((np.zeros_like(s_binary), np.uint8(binary), np.zeros_like(s_binary))) * 255
     return color_binary
 
 

@@ -25,13 +25,13 @@ test_img_folder = 'test_images/'  # test images
 output_img_folder = 'output_images/'  # output images
 
 # Algo settings
-# Binary image settings
+# Binary image settings (blue color)
 algo_version = 0  #  S color channel (HLS) && Sobel x, gradient threshold
-s_thresh = (255, 255)  # Threshold S color channel (HLS)
+s_thresh = (150, 255)  # Threshold S color channel (HLS)
 
 # Gradient algos
-sobel_kernel_size = 23
-sxy_thresh = (20, 150)  # Sobel x or y, gradient threshold
-mag_thresh = (0, 255)  # gradient magnitude threshold
-abs_grad_thresh = (0, np.pi/2)  # Absolute value of the gradient direction
+sobel_kernel_size = 7
+sxy_thresh = (20, 200)  # Sobel x or y, gradient threshold
+mag_thresh = (60, 200)  # gradient magnitude threshold
+abs_grad_thresh = (0.7, 1.3)  # Absolute value of the gradient direction
 
