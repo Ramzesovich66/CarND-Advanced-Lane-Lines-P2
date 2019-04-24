@@ -1,15 +1,15 @@
 
 # System settings
-video_mode = 0  # =0: test images, =1 video playback
+video_mode = 1  # =0: test images, =1 video playback
 store_img = 0  # =1: store intermediate images in test images mode
 plot_figures = 1  # if set =1 then plots figure at different stages of the pipeline
 
 # Video file to test
 video_file_name = 'project_video'
-clip_video = 1  # [default =0] Full video playback
+clip_video = 0  # [default =0] Full video playback
                 # [= 1] video file will be clipped with the following 2 parameters
-clip_start = 20  # presenting the start of the subclip, used when clip_video = 1
-clip_end = 24  # presenting the start of the subclip, used when clip_video = 1
+clip_start = 0  # presenting the start of the subclip, used when clip_video = 1
+clip_end = 30  # presenting the start of the subclip, used when clip_video = 1
 
 # Calibration related params
 compute_calib_params = 0  # if set to 1 then calibration params recomputed
@@ -25,9 +25,13 @@ test_img_folder = 'test_images/'  # test images
 output_img_folder = 'output_images/'  # output images
 
 # Algo settings
-# Binary image settings (blue color)
-algo_version = 0  #  S color channel (HLS) && Sobel x, gradient threshold
-s_thresh = (150, 255)  # Threshold S color channel (HLS)
+# Binary image settings
+algo_version = 0  #  [= 0] simple algo: S color channel (HLS) && Sobel x, gradient threshold
+                  #  [= 1] as =0 but additionally performs HSV and gray
+if algo_version == 0:
+    s_thresh = (170, 255)  # Threshold S color channel (HLS) (170, 255) vs (70, 255)
+else:
+    s_thresh = (70, 255)
 
 # Gradient algos
 sobel_kernel_size = 7

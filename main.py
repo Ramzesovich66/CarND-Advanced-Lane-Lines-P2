@@ -1,7 +1,6 @@
 import numpy as np
 import cv2
 import glob
-#  import importlib
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 from moviepy.editor import VideoFileClip
@@ -11,14 +10,10 @@ import camera_calibration as cc
 import binary_image as bi
 
 
-
-
-
-
 def pipeline_image():
     images = glob.glob(cfg.test_img_folder + '*.jpg')
     for idx, fname in enumerate(images):
-        img = cv2.imread(fname)
+        img = mpimg.imread(fname)
         undist = cc.distortion_correction(img)
         if cfg.store_img:
             write_name = cfg.output_img_folder + 'undist_test_img' + str(idx) + '.jpg'
@@ -30,7 +25,7 @@ def pipeline_image():
             f, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 5))
             f.tight_layout()
 
-            ax1.imshow(cv2.cvtColor(undist, cv2.COLOR_BGR2RGB))
+            ax1.imshow(undist)
             ax1.set_title('Undistored Image', fontsize=20)
 
             ax2.imshow(bin_img)

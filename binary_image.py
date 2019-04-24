@@ -60,37 +60,45 @@ def dir_threshold(img):
 
 def binary_image(img):
     img = np.copy(img)
-    # Convert to HLS color space and separate the V channel
-    r_channel = img[:, :, 1]
 
-    hls = cv2.cvtColor(img, cv2.COLOR_BGR2HLS)
+    hls = cv2.cvtColor(img, cv2.COLOR_RGB2HLS)
     l_channel = hls[:, :, 1]
     s_channel = hls[:, :, 2]
-    # Sobel x
 
+    # white line
     gradx = abs_sobel_thresh(l_channel, orient='x')
-    #grady = abs_sobel_thresh(cv2.cvtColor(img, cv2.COLOR_BGR2GRAY), orient='y')
-    #mag_binary = mag_thresh(cv2.cvtColor(img, cv2.COLOR_BGR2GRAY))
-    #dir_binary = dir_threshold(cv2.cvtColor(img, cv2.COLOR_BGR2GRAY))
-    thresh = (200, 255)
-    binary = np.zeros_like(r_channel)
-    binary[(r_channel > 200) & (r_channel <= 255)] = 1
 
-    combined = np.zeros_like(gradx)
-    #combined[((gradx == 1) | ((mag_binary == 1) & (dir_binary == 1)))] = 1
-    combined[((gradx == 1) & (binary == 1))] = 1
-    # Threshold color channel
+    # yellow line
     s_binary = np.zeros_like(s_channel)
     s_binary[(s_channel >= cfg.s_thresh[0]) & (s_channel <= cfg.s_thresh[1])] = 1
 
     # Stack each channel
-    # color_binary = np.dstack((rxbinary, sxbinary, s_binary)) * 255
-    color_binary = np.dstack((np.zeros_like(s_binary), np.uint8(binary), np.zeros_like(s_binary))) * 255
+    if cfg.algo_version == 1:
+        # white line
+        gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+        ret, binary = cv2.threshold(gray, thresh=170, maxval=255, type=cv2.THRESH_BINARY)
+        combined_white = np.zeros_like(gradx)
+        combined_white[((gradx == 1) & (binary == 255))] = 1
+
+        # yellow line
+        s_binary = np.zeros_like(s_channel)
+        s_binary[(s_channel >= cfg.s_thresh[0]) & (s_channel <= cfg.s_thresh[1])] = 1
+        hsv = cv2.cvtColor(img, cv2.COLOR_RGB2HSV)
+        hsv_min_yellow = np.all(hsv > np.array([0, 100, 100]), axis=2)
+        hsv_max_yellow = np.all(hsv < np.array([40, 255, 255]), axis=2)
+        hsv_yellow_bin = hsv_min_yellow & hsv_max_yellow
+        kernel = np.ones((3, 3), np.uint8)
+        hsv_yellow_bin = cv2.morphologyEx(hsv_yellow_bin.astype(np.uint8), cv2.MORPH_CLOSE, kernel)
+        combined_yellow = np.zeros_like(gradx)
+        combined_yellow[((s_binary == 1) & (hsv_yellow_bin == 1))] = 1
+        color_binary = np.dstack((np.zeros_like(s_binary), combined_white, combined_yellow)) * 255
+    else:
+        color_binary = np.dstack((np.zeros_like(s_binary), gradx, s_binary)) * 255
+    # It is useful in closing small holes inside the foreground objects, or small black points on the object.
+    kernel = np.ones((3, 3), np.uint8)
+    color_binary = cv2.morphologyEx(color_binary.astype(np.uint8), cv2.MORPH_CLOSE, kernel)
+
     return color_binary
-
-
-
-
 
 
 def perspective_transform():
@@ -108,14 +116,14 @@ if __name__ == '__main__':
     output_img_folder = 'output_images/'
     images = glob.glob(output_img_folder + 'undist_test_img*.jpg')
     for idx, fname in enumerate(images):
-        img = cv2.imread(fname)
+        img = mpimg.imread(fname)
         bin_img = bird_view(img)
 
         # Plot the result
         f, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 5))
         f.tight_layout()
 
-        ax1.imshow(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
+        ax1.imshow(img)
         ax1.set_title('Original Image', fontsize=40)
 
         ax2.imshow(bin_img)
