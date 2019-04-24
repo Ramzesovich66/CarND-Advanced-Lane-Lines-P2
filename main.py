@@ -38,7 +38,10 @@ def pipeline_image():
             plt.show()
 
 def pipeline_video():
-    clip = VideoFileClip(cfg.video_file_name + '.mp4').subclip(23, 24)
+    if cfg.clip_video:
+        clip = VideoFileClip(cfg.video_file_name + '.mp4').subclip(cfg.clip_start, cfg.clip_end)
+    else:
+        clip = VideoFileClip(cfg.video_file_name + '.mp4')
     processed_video = clip.fl_image(bi.binary_image)
     processed_video.write_videofile('out_' + cfg.video_file_name + str(cfg.num_of_frames) + '_frames.mp4', audio=False)
 
