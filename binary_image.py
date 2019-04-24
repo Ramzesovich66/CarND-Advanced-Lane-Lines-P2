@@ -58,6 +58,23 @@ def dir_threshold(img):
     # Return the binary image
     return binary_output
 
+def warper(img):
+    # Compute and apply perpective transform
+    img_size = (img.shape[1], img.shape[0])
+    M = cv2.getPerspectiveTransform(cfg.perspective_transform_src, cfg.perspective_transform_dst)
+    Minv = cv2.getPerspectiveTransform(cfg.perspective_transform_dst, cfg.perspective_transform_src)
+    warped = cv2.warpPerspective(img, M, img_size, flags=cv2.INTER_NEAREST)  # keep same size as input image
+
+    return warped
+
+def unwarper(img):
+    # Compute and apply perpective transform
+    img_size = (img.shape[1], img.shape[0])
+    Minv = cv2.getPerspectiveTransform(cfg.perspective_transform_dst, cfg.perspective_transform_src)
+    unwarped = cv2.warpPerspective(img, Minv, img_size, flags=cv2.INTER_NEAREST)  # keep same size as input image
+
+    return unwarped
+
 def binary_image(img):
     img = np.copy(img)
 
@@ -93,21 +110,19 @@ def binary_image(img):
     else:
         color_binary = np.dstack((np.zeros_like(s_binary), gradx, s_binary)) * 255
     # It is useful in closing small holes inside the foreground objects, or small black points on the object.
-    kernel = np.ones((3, 3), np.uint8)
-    color_binary = cv2.morphologyEx(color_binary.astype(np.uint8), cv2.MORPH_CLOSE, kernel)
+    if cfg.morphologyex_on:
+        kernel = np.ones((3, 3), np.uint8)
+        color_binary = cv2.morphologyEx(color_binary.astype(np.uint8), cv2.MORPH_CLOSE, kernel)
 
     return color_binary
 
 
-def perspective_transform():
-    return
-
-
-
 def bird_view(img):
     bin_img = binary_image(img)
-    #perspective_transform()
-    return bin_img
+    warped_img = warper(bin_img)
+    unwarped_img = unwarper(warped_img)
+    plt.imshow(unwarped_img)
+    return unwarped_img
 
 
 if __name__ == '__main__':
