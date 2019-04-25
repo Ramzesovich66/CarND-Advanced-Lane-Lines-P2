@@ -1,4 +1,3 @@
-import numpy as np
 import cv2
 import glob
 import matplotlib.pyplot as plt
@@ -8,17 +7,20 @@ from moviepy.editor import VideoFileClip
 import config as cfg
 import camera_calibration as cc
 import binary_image as bi
-
+import curve_computation as cuc
+import utility_funct as ut
 
 def pipeline_image():
     images = glob.glob(cfg.test_img_folder + '*.jpg')
     for idx, fname in enumerate(images):
         img = mpimg.imread(fname)
         undist = cc.distortion_correction(img)
+        binary_warped = bi.bird_view(undist)
+        out_img, left_fitx, right_fitx, ploty = cuc.fit_polynomial(binary_warped)
+        result = ut.annotate_frame(undist, binary_warped, left_fitx, right_fitx, ploty)
         if cfg.store_img:
             write_name = cfg.output_img_folder + 'undist_test_img' + str(idx) + '.jpg'
-            cv2.imwrite(write_name, undist)
-        bird_img = bi.bird_view(undist)
+            cv2.imwrite(write_name, cv2.cvtColor(undist, cv2.COLOR_RGB2BGR))
 
         if cfg.plot_figures:
             # Plot the result
@@ -28,14 +30,21 @@ def pipeline_image():
             ax1.imshow(undist)
             ax1.set_title('Undistored Image', fontsize=20)
 
-            ax2.imshow(bird_img)
+            #ax2.imshow(binary_warped)
+            #Plots the left and right polynomials on the lane lines
+            # ax2.plot(left_fitx, ploty, color='yellow')
+            # ax2.plot(right_fitx, ploty, color='yellow')
+            # ax2.imshow(out_img)
+            ax2.imshow(result)
             ax2.set_title('Bird view', fontsize=20)
             plt.show()
 
 def pipeline_video(img):
     undist = cc.distortion_correction(img)
-    bird_img = bi.bird_view(undist)
-    return bird_img
+    binary_warped = bi.bird_view(undist)
+    out_img, left_fitx, right_fitx, ploty = cuc.fit_polynomial(binary_warped)
+    result = ut.annotate_frame(undist, binary_warped, left_fitx, right_fitx, ploty)
+    return result
 
 
 if __name__ == '__main__':
@@ -65,8 +74,8 @@ if __name__ == '__main__':
                 if ret:
                     color_frame = cv2.cvtColor(color_frame, cv2.COLOR_BGR2RGB)
                     merged_image = pipeline_video(color_frame)
+                    #cv2.imshow('blend', merged_image*255)
                     cv2.imshow('blend', cv2.cvtColor(merged_image, cv2.COLOR_RGB2BGR))
-
                     if cv2.waitKey(1) & 0xFF == ord('q'):
                         break
 
@@ -74,3 +83,4 @@ if __name__ == '__main__':
                     break
             cap.release()
             out.release()
+            cv2.destroyAllWindows()

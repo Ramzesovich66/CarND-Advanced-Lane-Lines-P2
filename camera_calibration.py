@@ -74,6 +74,3 @@ if __name__ == '__main__':
     for idx, fname in enumerate(images):
         img = cv2.imread(fname)
         undist = distortion_correction(img)
-        if cfg.store_img:
-            write_name = cfg.output_img_folder + 'undist_chessboard_img' + str(idx) + '.jpg'
-            cv2.imwrite(write_name, undist)

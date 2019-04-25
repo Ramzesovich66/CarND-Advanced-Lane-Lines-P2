@@ -107,22 +107,23 @@ def binary_image(img):
         combined_yellow = np.zeros_like(gradx)
         combined_yellow[((s_binary == 1) & (hsv_yellow_bin == 1))] = 1
         color_binary = np.dstack((np.zeros_like(s_binary), combined_white, combined_yellow)) * 255
+        binary_img = combined_white | combined_yellow
     else:
         color_binary = np.dstack((np.zeros_like(s_binary), gradx, s_binary)) * 255
+        binary_img = gradx | s_binary
     # It is useful in closing small holes inside the foreground objects, or small black points on the object.
     if cfg.morphologyex_on:
         kernel = np.ones((3, 3), np.uint8)
         color_binary = cv2.morphologyEx(color_binary.astype(np.uint8), cv2.MORPH_CLOSE, kernel)
 
-    return color_binary
+    return color_binary, binary_img
 
 
 def bird_view(img):
-    bin_img = binary_image(img)
+    _, bin_img = binary_image(img)
     warped_img = warper(bin_img)
     unwarped_img = unwarper(warped_img)
-    plt.imshow(unwarped_img)
-    return unwarped_img
+    return warped_img
 
 
 if __name__ == '__main__':
