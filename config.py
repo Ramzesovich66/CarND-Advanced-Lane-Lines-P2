@@ -9,10 +9,10 @@ import numpy as np
 #          __/ |                                                  __/ |
 #         |___/                                                  |___/
 # -------------------------------------------------------------------------------
-video_mode = 1  # [= 0]: test images, =1 video playback
+video_mode = 0  # [= 0]: test images, =1 video playback
 
 # The following param only when [video_mode = 1]
-store_video = 1  # [= 0]: processed video is played real time
+store_video = 0  # [= 0]: processed video is played real time
                  # [= 1]: processed video stored in a file
 
 # Video file to test
@@ -21,8 +21,8 @@ video_file_name = 'project_video'
 # The following 3 params are only when [store_video = 1]
 clip_video = 0  # [default =0]: Full video playback
                 # [= 1]: video file will be clipped with the following 2 parameters
-clip_start = 0  # presenting the start of the subclip, used when clip_video = 1
-clip_end = 2  # presenting the start of the subclip, used when clip_video = 1
+clip_start = 3  # presenting the start of the subclip, used when clip_video = 1
+clip_end = 5  # presenting the start of the subclip, used when clip_video = 1
 
 # The following 2 params only when [video_mode = 0]
 store_img = 0  # =1: store intermediate images in test images mode
@@ -52,7 +52,7 @@ output_img_folder = 'output_images/'  # output images
 # -------------------------------------------------------------------------------
 
 # Binary image settings
-algo_version = 1  #  [= 0] simple algo: S color channel (HLS) && Sobel x, gradient threshold
+algo_version = 0  #  [= 0] simple algo: S color channel (HLS) && Sobel x, gradient threshold
                   #  [= 1] as =0 but additionally performs HSV and gray
 if algo_version == 0:
     s_thresh = (170, 255)  # Threshold S color channel (HLS) (170, 255) vs (70, 255)
@@ -93,3 +93,7 @@ nwindows = 9
 margin = 100
 # Set minimum number of pixels found to recenter window
 minpix = 50
+
+# Define conversions in x and y from pixels space to meters
+ym_per_pix = 30 / 720  # meters per pixel in y dimension
+xm_per_pix = 3.7 / 700  # meters per pixel in x dimension

@@ -25,39 +25,6 @@ def abs_sobel_thresh(img, orient='x'):
     # Return the result
     return binary_output
 
-# Define a function to return the magnitude of the gradient
-# for a given sobel kernel size and threshold values
-def mag_thresh(img):
-    # Take both Sobel x and y gradients
-    sobelx = cv2.Sobel(img, cv2.CV_64F, 1, 0, ksize=cfg.sobel_kernel_size)
-    sobely = cv2.Sobel(img, cv2.CV_64F, 0, 1, ksize=cfg.sobel_kernel_size)
-    # Calculate the gradient magnitude
-    gradmag = np.sqrt(sobelx**2 + sobely**2)
-    # Rescale to 8 bit
-    scale_factor = np.max(gradmag)/255
-    gradmag = (gradmag/scale_factor).astype(np.uint8)
-    # Create a binary image of ones where threshold is met, zeros otherwise
-    binary_output = np.zeros_like(gradmag)
-    binary_output[(gradmag >= cfg.mag_thresh[0]) & (gradmag <= cfg.mag_thresh[1])] = 1
-
-    # Return the binary image
-    return binary_output
-
-
-# Define a function to threshold an image for a given range and Sobel kernel
-def dir_threshold(img):
-    # Calculate the x and y gradients
-    sobelx = cv2.Sobel(img, cv2.CV_64F, 1, 0, ksize=cfg.sobel_kernel_size)
-    sobely = cv2.Sobel(img, cv2.CV_64F, 0, 1, ksize=cfg.sobel_kernel_size)
-    # Take the absolute value of the gradient direction,
-    # apply a threshold, and create a binary image result
-    absgraddir = np.arctan2(np.absolute(sobely), np.absolute(sobelx))
-    binary_output = np.zeros_like(absgraddir)
-    binary_output[(absgraddir >= cfg.abs_grad_thresh[0]) & (absgraddir <= cfg.abs_grad_thresh[1])] = 1
-
-    # Return the binary image
-    return binary_output
-
 def warper(img):
     # Compute and apply perpective transform
     img_size = (img.shape[1], img.shape[0])
@@ -111,6 +78,7 @@ def binary_image(img):
     else:
         color_binary = np.dstack((np.zeros_like(s_binary), gradx, s_binary)) * 255
         binary_img = gradx | s_binary
+
     # It is useful in closing small holes inside the foreground objects, or small black points on the object.
     if cfg.morphologyex_on:
         kernel = np.ones((3, 3), np.uint8)

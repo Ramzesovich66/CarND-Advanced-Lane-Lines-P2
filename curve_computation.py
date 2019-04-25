@@ -102,6 +102,33 @@ def fit_polynomial(binary_warped):
     out_img[lefty, leftx] = [255, 0, 0]
     out_img[righty, rightx] = [0, 0, 255]
 
-    return out_img, left_fitx, right_fitx, ploty
+    return out_img, left_fitx, right_fitx, ploty, left_fit, right_fit
+
+# Calculate the radius of curvature in meters for both lane lines
+def measure_curvature_real(left_fit_cr, right_fit_cr, ploty):
+    '''
+    Calculates the curvature of polynomial functions in meters.
+    '''
+    # Define y-value where we want radius of curvature
+    # We'll choose the maximum y-value, corresponding to the bottom of the image
+    y_eval = np.max(ploty)
+
+    # Calculation of R_curve (radius of curvature)
+    left_curverad = ((1 + (left_fit_cr[0] * 2 * y_eval * cfg.ym_per_pix + left_fit_cr[1]) ** 2) ** (3 / 2)) / np.abs(
+        2 * left_fit_cr[0])
+    # Calculation of the left line here
+    right_curverad = ((1 + (right_fit_cr[0] * 2 * y_eval * cfg.ym_per_pix + right_fit_cr[1]) ** 2) ** (3 / 2)) / np.abs(
+        2 * right_fit_cr[0])
+
+    return left_curverad, right_curverad
+
+def vehicle_offset_calc(undist, bottom_x_left, bottom_x_right):
+    # Calculate vehicle center offset in pixels
+    vehicle_offset = undist.shape[1]/2 - (bottom_x_left + bottom_x_right)/2
+    # Convert pixel offset to meters
+    vehicle_offset *= cfg.xm_per_pix
+
+    return vehicle_offset
+
 
 

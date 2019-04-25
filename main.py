@@ -16,8 +16,9 @@ def pipeline_image():
         img = mpimg.imread(fname)
         undist = cc.distortion_correction(img)
         binary_warped = bi.bird_view(undist)
-        out_img, left_fitx, right_fitx, ploty = cuc.fit_polynomial(binary_warped)
-        result = ut.annotate_frame(undist, binary_warped, left_fitx, right_fitx, ploty)
+        out_img, left_fitx, right_fitx, ploty, left_fit, right_fit = cuc.fit_polynomial(binary_warped)
+        result = ut.annotate_frame(undist, left_fitx, right_fitx, ploty, left_fit, right_fit)
+
         if cfg.store_img:
             write_name = cfg.output_img_folder + 'undist_test_img' + str(idx) + '.jpg'
             cv2.imwrite(write_name, cv2.cvtColor(undist, cv2.COLOR_RGB2BGR))
@@ -42,8 +43,8 @@ def pipeline_image():
 def pipeline_video(img):
     undist = cc.distortion_correction(img)
     binary_warped = bi.bird_view(undist)
-    out_img, left_fitx, right_fitx, ploty = cuc.fit_polynomial(binary_warped)
-    result = ut.annotate_frame(undist, binary_warped, left_fitx, right_fitx, ploty)
+    out_img, left_fitx, right_fitx, ploty, left_fit, right_fit = cuc.fit_polynomial(binary_warped)
+    result = ut.annotate_frame(undist, left_fitx, right_fitx, ploty, left_fit, right_fit)
     return result
 
 
