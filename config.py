@@ -16,7 +16,7 @@ store_video = 1  # [= 0]: processed video is played real time
                  # [= 1]: processed video stored in a file
 
 # Video file to test
-video_file_name = 'challenge_video'#''project_video'
+video_file_name = 'project_video'
 
 # The following 3 params are only when [store_video = 1]
 clip_video = 0  # [default =0]: Full video playback
