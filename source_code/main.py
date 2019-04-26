@@ -51,13 +51,12 @@ if __name__ == '__main__':
             else:
                 clip = VideoFileClip(cfg.video_file_name + '.mp4')
             processed_video = clip.fl_image(pipeline)
-            processed_video.write_videofile('out_' + cfg.video_file_name + str(cfg.num_of_frames) + '_frames.mp4', audio=False)
+            temp = cfg.video_file_name
+            processed_video.write_videofile(cfg.output_video_folder + 'out_' + temp[3::] +
+                                            str(cfg.num_of_frames) + '_frames.mp4', audio=False)
 
         else:
             cap = cv2.VideoCapture(cfg.video_file_name + '.mp4')
-            out = cv2.VideoWriter('out_' + cfg.video_file_name + str(cfg.num_of_frames) + '_frames.mp4',
-                fourcc=cv2.VideoWriter_fourcc(*'mp4v'), fps=20.0, frameSize=(1280, 720))
-
             while cap.isOpened():
                 ret, color_frame = cap.read()
                 if ret:
@@ -67,10 +66,8 @@ if __name__ == '__main__':
                     cv2.imshow('blend', cv2.cvtColor(merged_image, cv2.COLOR_RGB2BGR))
                     if cv2.waitKey(1) & 0xFF == ord('q'):
                         break
-
                 else:
                     break
 
             cap.release()
-            out.release()
             cv2.destroyAllWindows()

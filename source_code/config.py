@@ -9,10 +9,10 @@ import numpy as np
 #          __/ |                                                  __/ |
 #         |___/                                                  |___/
 # -------------------------------------------------------------------------------
-video_mode = 0  # [= 0]: test images, =1 video playback
+video_mode = 1  # [= 0]: test images, =1 video playback
 
 # The following param only when [video_mode = 1]
-store_video = 0  # [= 0]: processed video is played real time
+store_video = 1  # [= 0]: processed video is played real time
                  # [= 1]: processed video stored in a file
 
 # Video file to test
@@ -40,7 +40,7 @@ num_of_frames = 1  # Averaging is done over this number of frames
 cam_cal_folder = '../camera_cal/'  # calibration images
 test_img_folder = '../test_images/'  # test images
 output_img_folder = '../output_images/'  # output images
-
+output_video_folder = '../output_videos/'  # output videos
 # -------------------------------------------------------------------------------
 #     /\   | |                      | | | | (_)
 #    /  \  | | __ _  ___    ___  ___| |_| |_ _ _ __   __ _ ___
