@@ -8,10 +8,10 @@ import config as cfg
 
 from camera_calibration import camera_calibration, distortion_correction
 from binary_image import binary_image, warper
-from plot_func import annotate_frame
+from plot_func import annotate_frame, plot_images
 from curve_computation import fit_polynomial
 
-def pipeline(img):
+def pipeline(img, *args):
     undist = distortion_correction(img)
     color_binary, bin_img = binary_image(undist)
     binary_warped = warper(bin_img)
@@ -19,26 +19,17 @@ def pipeline(img):
     result = annotate_frame(undist, left_fitx, right_fitx, ploty, left_fit, right_fit)
 
     if cfg.video_mode == 0:
-        if cfg.store_img:
-            write_name = cfg.output_img_folder + 'undist_test_img' + str(idx) + '.jpg'
-            cv2.imwrite(write_name, cv2.cvtColor(undist, cv2.COLOR_RGB2BGR))
-
-        if cfg.plot_figures:
+        if cfg.plot_figures | cfg.store_img:
             # Plot the result
-            f, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 5))
-            f.tight_layout()
+            temp = args[0].split('\\')
+            file_name = temp[1].replace('.jpg', '')
+            plot_images(img, undist, 0, 'Original Image', 'Undistored Image', 20, file_name + '_undist')
+            plot_images(undist, color_binary, 0, 'Undistored Image', 'Binary image, blue - yellow color detection, '
+                        'green - white color detection', 10,file_name + '_binary_color')
+            plot_images(undist, out_img, 1, 'Undistored Image', 'Binary image in bird view', 20,
+                        file_name + '_binary_bird_view', (left_fitx, right_fitx, ploty))
+            plot_images(undist, result, 0, 'Undistored Image', 'Processed Image', 20, file_name + 'final')
 
-            ax1.imshow(undist)
-            ax1.set_title('Undistored Image', fontsize=20)
-
-            # ax2.imshow(binary_warped)
-            # Plots the left and right polynomials on the lane lines
-            # ax2.plot(left_fitx, ploty, color='yellow')
-            # ax2.plot(right_fitx, ploty, color='yellow')
-            # ax2.imshow(out_img)
-            ax2.imshow(result)
-            ax2.set_title('Bird view', fontsize=20)
-            plt.show()
     return result
 
 
@@ -51,7 +42,7 @@ if __name__ == '__main__':
         images = glob.glob(cfg.test_img_folder + '*.jpg')
         for idx, fname in enumerate(images):
             img = mpimg.imread(fname)
-            pipeline(img)
+            pipeline(img, fname)
     else:
 
         if cfg.store_video == 1:
@@ -79,6 +70,7 @@ if __name__ == '__main__':
 
                 else:
                     break
+
             cap.release()
             out.release()
             cv2.destroyAllWindows()

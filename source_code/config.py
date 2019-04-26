@@ -9,7 +9,7 @@ import numpy as np
 #          __/ |                                                  __/ |
 #         |___/                                                  |___/
 # -------------------------------------------------------------------------------
-video_mode = 1  # [= 0]: test images, =1 video playback
+video_mode = 0  # [= 0]: test images, =1 video playback
 
 # The following param only when [video_mode = 1]
 store_video = 0  # [= 0]: processed video is played real time
