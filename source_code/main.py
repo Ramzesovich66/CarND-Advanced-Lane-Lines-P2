@@ -5,20 +5,20 @@ import matplotlib.image as mpimg
 from moviepy.editor import VideoFileClip
 
 import config as cfg
-import camera_calibration as cc
-import binary_image as bi
-import curve_computation as cuc
-import utility_funct as ut
 
-def pipeline_image():
-    images = glob.glob(cfg.test_img_folder + '*.jpg')
-    for idx, fname in enumerate(images):
-        img = mpimg.imread(fname)
-        undist = cc.distortion_correction(img)
-        binary_warped = bi.bird_view(undist)
-        out_img, left_fitx, right_fitx, ploty, left_fit, right_fit = cuc.fit_polynomial(binary_warped)
-        result = ut.annotate_frame(undist, left_fitx, right_fitx, ploty, left_fit, right_fit)
+from camera_calibration import camera_calibration, distortion_correction
+from binary_image import binary_image, warper
+from plot_func import annotate_frame
+from curve_computation import fit_polynomial
 
+def pipeline(img):
+    undist = distortion_correction(img)
+    color_binary, bin_img = binary_image(undist)
+    binary_warped = warper(bin_img)
+    out_img, left_fitx, right_fitx, ploty, left_fit, right_fit = fit_polynomial(binary_warped)
+    result = annotate_frame(undist, left_fitx, right_fitx, ploty, left_fit, right_fit)
+
+    if cfg.video_mode == 0:
         if cfg.store_img:
             write_name = cfg.output_img_folder + 'undist_test_img' + str(idx) + '.jpg'
             cv2.imwrite(write_name, cv2.cvtColor(undist, cv2.COLOR_RGB2BGR))
@@ -31,30 +31,27 @@ def pipeline_image():
             ax1.imshow(undist)
             ax1.set_title('Undistored Image', fontsize=20)
 
-            #ax2.imshow(binary_warped)
-            #Plots the left and right polynomials on the lane lines
+            # ax2.imshow(binary_warped)
+            # Plots the left and right polynomials on the lane lines
             # ax2.plot(left_fitx, ploty, color='yellow')
             # ax2.plot(right_fitx, ploty, color='yellow')
             # ax2.imshow(out_img)
             ax2.imshow(result)
             ax2.set_title('Bird view', fontsize=20)
             plt.show()
-
-def pipeline_video(img):
-    undist = cc.distortion_correction(img)
-    binary_warped = bi.bird_view(undist)
-    out_img, left_fitx, right_fitx, ploty, left_fit, right_fit = cuc.fit_polynomial(binary_warped)
-    result = ut.annotate_frame(undist, left_fitx, right_fitx, ploty, left_fit, right_fit)
     return result
 
 
 if __name__ == '__main__':
 
     if cfg.compute_calib_params:
-        cc.camera_calibration()
+        camera_calibration()
 
     if cfg.video_mode == 0:
-        pipeline_image()
+        images = glob.glob(cfg.test_img_folder + '*.jpg')
+        for idx, fname in enumerate(images):
+            img = mpimg.imread(fname)
+            pipeline(img)
     else:
 
         if cfg.store_video == 1:
@@ -62,7 +59,7 @@ if __name__ == '__main__':
                 clip = VideoFileClip(cfg.video_file_name + '.mp4').subclip(cfg.clip_start, cfg.clip_end)
             else:
                 clip = VideoFileClip(cfg.video_file_name + '.mp4')
-            processed_video = clip.fl_image(pipeline_video)
+            processed_video = clip.fl_image(pipeline)
             processed_video.write_videofile('out_' + cfg.video_file_name + str(cfg.num_of_frames) + '_frames.mp4', audio=False)
 
         else:
@@ -74,7 +71,7 @@ if __name__ == '__main__':
                 ret, color_frame = cap.read()
                 if ret:
                     color_frame = cv2.cvtColor(color_frame, cv2.COLOR_BGR2RGB)
-                    merged_image = pipeline_video(color_frame)
+                    merged_image = pipeline(color_frame)
                     #cv2.imshow('blend', merged_image*255)
                     cv2.imshow('blend', cv2.cvtColor(merged_image, cv2.COLOR_RGB2BGR))
                     if cv2.waitKey(1) & 0xFF == ord('q'):

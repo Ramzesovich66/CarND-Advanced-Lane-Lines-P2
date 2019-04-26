@@ -29,7 +29,7 @@ store_img = 0  # =1: store intermediate images in test images mode
 plot_figures = 1  # if set =1 then plots figure at different stages of the pipeline
 
 # Calibration related params
-compute_calib_params = 1  # if set to 1 then calibration params recomputed
+compute_calib_params = 0  # if set to 1 then calibration params recomputed
 x_dim = 9  # chessboard size x axis
 y_dim = 6  # chessboard size y axis
 

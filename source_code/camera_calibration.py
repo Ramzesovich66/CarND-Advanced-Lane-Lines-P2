@@ -1,8 +1,6 @@
 import numpy as np
 import cv2
 import glob
-import matplotlib.pyplot as plt
-import matplotlib.image as mpimg
 import pickle
 
 import config as cfg
@@ -39,13 +37,8 @@ def camera_calibration():
             if cfg.store_img:
                 write_name = cfg.output_img_folder + 'chessboard_with_corners_img' + str(idx) + '.jpg'
                 cv2.imwrite(write_name, img)
-
-            #cv2.imshow('img', img)
-            #cv2.waitKey(500)
         else:
             print(fname + ' failed in finding corners')
-
-    #cv2.destroyAllWindows()
 
     # Do camera calibration given object points and image points
     ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(objpoints, imgpoints, img_size, None, None)
