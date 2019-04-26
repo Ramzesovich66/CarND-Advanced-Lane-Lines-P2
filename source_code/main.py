@@ -1,6 +1,5 @@
 import cv2
 import glob
-import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 from moviepy.editor import VideoFileClip
 
@@ -9,14 +8,18 @@ import config as cfg
 from camera_calibration import camera_calibration, distortion_correction
 from binary_image import binary_image, warper
 from plot_func import annotate_frame, plot_images
-from curve_computation import fit_polynomial
+from curve_computation import fit_polynomial, Line
+
+left_line = Line()
+right_line = Line()
 
 def pipeline(img, *args):
+    global left_line, right_line
     undist = distortion_correction(img)
     color_binary, bin_img = binary_image(undist)
     binary_warped = warper(bin_img)
-    out_img, left_fitx, right_fitx, ploty, left_fit, right_fit = fit_polynomial(binary_warped)
-    result = annotate_frame(undist, left_fitx, right_fitx, ploty, left_fit, right_fit)
+    out_img, left_line, right_line = fit_polynomial(binary_warped, left_line, right_line)
+    result = annotate_frame(undist, left_line, right_line)
 
     if cfg.video_mode == 0:
         if cfg.plot_figures | cfg.store_img:
@@ -27,7 +30,7 @@ def pipeline(img, *args):
             plot_images(undist, color_binary, 0, 'Undistored Image', 'Binary image, blue - yellow color detection, '
                         'green - white color detection', 10,file_name + '_binary_color')
             plot_images(undist, out_img, 1, 'Undistored Image', 'Binary image in bird view', 20,
-                        file_name + '_binary_bird_view', (left_fitx, right_fitx, ploty))
+                        file_name + '_binary_bird_view', (left_line.bestx, right_line.bestx, left_line.ploty))
             plot_images(undist, result, 0, 'Undistored Image', 'Processed Image', 20, file_name + 'final')
 
     return result

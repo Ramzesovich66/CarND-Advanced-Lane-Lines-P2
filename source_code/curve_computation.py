@@ -3,6 +3,30 @@ import cv2
 
 import config as cfg
 
+# Define a class to receive the characteristics of each line detection
+class Line():
+    def __init__(self):
+        # was the line detected in the last iteration?
+        self.detected = False
+        # x values of the last n fits of the line
+        self.recent_xfitted = []
+        #average x values of the fitted line over the last n iterations
+        self.bestx = None
+        self.ploty = None
+        #polynomial coefficients averaged over the last n iterations
+        self.best_fit = None
+        #polynomial coefficients for the most recent fit
+        self.current_fit = [np.array([False])]
+        #radius of curvature of the line in some units
+        self.radius_of_curvature = None
+        #distance in meters of vehicle center from the line
+        self.line_base_pos = None
+        #difference in fit coefficients between last and new fits
+        self.diffs = np.array([0, 0, 0], dtype='float')
+        #x values for detected line pixels
+        self.allx = None
+        #y values for detected line pixels
+        self.ally = None
 
 def find_lane_pixels(binary_warped):
     # Take a histogram of the bottom half of the image
@@ -78,7 +102,7 @@ def find_lane_pixels(binary_warped):
     return leftx, lefty, rightx, righty, out_img
 
 
-def fit_polynomial(binary_warped):
+def fit_polynomial(binary_warped, left_line, right_line):
     # Find our lane pixels first
     leftx, lefty, rightx, righty, out_img = find_lane_pixels(binary_warped)
 
@@ -102,10 +126,22 @@ def fit_polynomial(binary_warped):
     out_img[lefty, leftx] = [255, 0, 0]
     out_img[righty, rightx] = [0, 0, 255]
 
-    return out_img, left_fitx, right_fitx, ploty, left_fit, right_fit
+    left_line.allx = leftx
+    left_line.ally = lefty
+    left_line.bestx = left_fitx
+    left_line.ploty = ploty
+    left_line.current_fit = left_fit
+
+    right_line.allx = rightx
+    right_line.ally = righty
+    right_line.bestx = right_fitx
+    right_line.ploty = ploty
+    right_line.current_fit = right_fit
+
+    return out_img, left_line, right_line
 
 # Calculate the radius of curvature in meters for both lane lines
-def measure_curvature_real(left_fit_cr, right_fit_cr, ploty):
+def measure_curvature(left_fit_cr, right_fit_cr, ploty):
     '''
     Calculates the curvature of polynomial functions in meters.
     '''

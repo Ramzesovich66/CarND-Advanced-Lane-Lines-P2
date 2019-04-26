@@ -12,7 +12,7 @@ import numpy as np
 video_mode = 1  # [= 0]: test images, =1 video playback
 
 # The following param only when [video_mode = 1]
-store_video = 1  # [= 0]: processed video is played real time
+store_video = 0  # [= 0]: processed video is played real time
                  # [= 1]: processed video stored in a file
 
 # Video file to test
@@ -60,14 +60,12 @@ else:
     s_thresh = (70, 255)
 
 # Gradient algos
-sobel_kernel_size = 17
+sobel_kernel_size = 7
 sxy_thresh = (20, 200)  # Sobel x or y, gradient threshold
-mag_thresh = (60, 200)  # gradient magnitude threshold
-abs_grad_thresh = (0.7, 1.3)  # Absolute value of the gradient direction
 
 # Use cv2.morphologyEx with kernel size 3x3
 # to closing small holes inside the foreground objects, or small black points on the object in binary image
-morphologyex_on = 1
+morphologyex_on = 0
 
 # Perspective transform settings
 perspective_transform_src = np.float32([[545, 460],
@@ -80,11 +78,6 @@ perspective_transform_dst = np.float32([[300, 0],
                                         [1000, 720],
                                         [300, 720]])
 
-# perspective_transform_dst = np.float32([[0, 0],
-#                                         [1280, 0],
-#                                         [1280, 720],
-#                                         [0, 720]])
-
 
 # Hyperparameters for Sliding window
 # Choose the number of sliding windows
@@ -94,6 +87,11 @@ margin = 100
 # Set minimum number of pixels found to recenter window
 minpix = 50
 
+# nwindows = 9
+# # Set the width of the windows +/- margin
+# margin = 100
+# # Set minimum number of pixels found to recenter window
+# minpix = 50
 # Define conversions in x and y from pixels space to meters
 ym_per_pix = 30 / 720  # meters per pixel in y dimension
 xm_per_pix = 3.7 / 700  # meters per pixel in x dimension
