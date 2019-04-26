@@ -8,20 +8,28 @@ import config as cfg
 from camera_calibration import camera_calibration, distortion_correction
 from binary_image import binary_image, warper
 from plot_func import annotate_frame, plot_images
-from curve_computation import fit_polynomial, Line
+from curve_computation import fit_polynomial, Line, search_around_poly
 
-left_line = Line()
-right_line = Line()
+frame_number = 0
+left_line = Line(buf_len=cfg.num_of_frames)
+right_line = Line(buf_len=cfg.num_of_frames)
 
 def pipeline(img, *args):
-    global left_line, right_line
+    global left_line, right_line, frame_number
+
     undist = distortion_correction(img)
     color_binary, bin_img = binary_image(undist)
     binary_warped = warper(bin_img)
-    out_img, left_line, right_line = fit_polynomial(binary_warped, left_line, right_line)
-    result = annotate_frame(undist, left_line, right_line)
 
-    if cfg.video_mode == 0:
+    if ((frame_number == 0) | (0 == cfg.video_mode) | (0 == cfg.apply_search_around_poly)):
+        out_img, left_line, right_line = fit_polynomial(binary_warped, left_line, right_line)
+    else:
+        out_img, left_line, right_line = search_around_poly(binary_warped, left_line, right_line)
+
+    result = annotate_frame(undist, left_line, right_line)
+    frame_number += 1
+
+    if 0 == cfg.video_mode:
         if cfg.plot_figures | cfg.store_img:
             # Plot the result
             temp = args[0].split('\\')
@@ -41,14 +49,14 @@ if __name__ == '__main__':
     if cfg.compute_calib_params:
         camera_calibration()
 
-    if cfg.video_mode == 0:
+    if 0 == cfg.video_mode:
         images = glob.glob(cfg.test_img_folder + '*.jpg')
         for idx, fname in enumerate(images):
             img = mpimg.imread(fname)
             pipeline(img, fname)
     else:
 
-        if cfg.store_video == 1:
+        if 1 == cfg.store_video:
             if cfg.clip_video:
                 clip = VideoFileClip(cfg.video_file_name + '.mp4').subclip(cfg.clip_start, cfg.clip_end)
             else:

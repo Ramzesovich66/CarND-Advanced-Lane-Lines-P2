@@ -59,11 +59,3 @@ def distortion_correction(dist_img):
     undist_img = cv2.undistort(dist_img, mtx, dist, None, mtx)
 
     return undist_img
-
-if __name__ == '__main__':
-    camera_calibration()
-
-    images = glob.glob(cfg.cam_cal_folder + 'calib*.jpg')
-    for idx, fname in enumerate(images):
-        img = cv2.imread(fname)
-        undist = distortion_correction(img)

@@ -1,6 +1,5 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib.image as mpimg
 import cv2
 
 import config as cfg
@@ -17,7 +16,7 @@ def annotate_frame(undist, left_line, right_line):
     right_fitx = right_line.bestx
     right_fit = right_line.current_fit
 
-    ploty = left_line.ploty
+    ploty = np.linspace(0, undist.shape[0] - 1, undist.shape[0])
     # Recast the x and y points into usable format for cv2.fillPoly()
     pts_left = np.array([np.transpose(np.vstack([left_fitx, ploty]))])
     pts_right = np.array([np.flipud(np.transpose(np.vstack([right_fitx, ploty])))])

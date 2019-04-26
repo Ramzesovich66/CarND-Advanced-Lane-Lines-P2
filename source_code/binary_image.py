@@ -87,22 +87,3 @@ def binary_image(img):
     return color_binary, binary_img
 
 
-if __name__ == '__main__':
-    output_img_folder = 'output_images/'
-    images = glob.glob(output_img_folder + 'undist_test_img*.jpg')
-    for idx, fname in enumerate(images):
-        img = mpimg.imread(fname)
-        color_binary, bin_img = binary_image(img)
-        warped_img = warper(bin_img)
-
-        # Plot the result
-        f, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 5))
-        f.tight_layout()
-
-        ax1.imshow(img)
-        ax1.set_title('Original Image', fontsize=40)
-
-        ax2.imshow(warped_img)
-        ax2.set_title('Binary Result', fontsize=40)
-        plt.show()
-

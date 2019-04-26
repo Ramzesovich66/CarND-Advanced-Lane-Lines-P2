@@ -12,11 +12,17 @@ import numpy as np
 video_mode = 1  # [= 0]: test images, =1 video playback
 
 # The following param only when [video_mode = 1]
-store_video = 0  # [= 0]: processed video is played real time
+store_video = 1  # [= 0]: processed video is played real time
                  # [= 1]: processed video stored in a file
 
 # Video file to test
 video_file_name = '../project_video'
+
+# Path to the subfolders
+cam_cal_folder = '../camera_cal/'  # calibration images
+test_img_folder = '../test_images/'  # test images
+output_img_folder = '../output_images/'  # output images
+output_video_folder = '../output_videos/'  # output videos
 
 # The following 3 params are only when [store_video = 1]
 clip_video = 0  # [default =0]: Full video playback
@@ -33,14 +39,6 @@ compute_calib_params = 0  # if set to 1 then calibration params recomputed
 x_dim = 9  # chessboard size x axis
 y_dim = 6  # chessboard size y axis
 
-#
-num_of_frames = 1  # Averaging is done over this number of frames
-
-# Path to the subfolders
-cam_cal_folder = '../camera_cal/'  # calibration images
-test_img_folder = '../test_images/'  # test images
-output_img_folder = '../output_images/'  # output images
-output_video_folder = '../output_videos/'  # output videos
 # -------------------------------------------------------------------------------
 #     /\   | |                      | | | | (_)
 #    /  \  | | __ _  ___    ___  ___| |_| |_ _ _ __   __ _ ___
@@ -50,6 +48,9 @@ output_video_folder = '../output_videos/'  # output videos
 #              __/ |                                  __/ |
 #             |___/                                  |___/
 # -------------------------------------------------------------------------------
+
+#
+num_of_frames = 1  # Averaging is done over this number of frames
 
 # Binary image settings
 algo_version = 1  #  [= 0] simple algo: S color channel (HLS) && Sobel x, gradient threshold
@@ -87,11 +88,16 @@ margin = 100
 # Set minimum number of pixels found to recenter window
 minpix = 50
 
+apply_search_around_poly = 1
+search_around_poly = 50
+
 # nwindows = 9
 # # Set the width of the windows +/- margin
 # margin = 100
 # # Set minimum number of pixels found to recenter window
 # minpix = 50
+
 # Define conversions in x and y from pixels space to meters
 ym_per_pix = 30 / 720  # meters per pixel in y dimension
 xm_per_pix = 3.7 / 700  # meters per pixel in x dimension
+
