@@ -12,7 +12,7 @@ import numpy as np
 video_mode = 1  # [= 0]: test images, =1 video playback
 
 # The following param only when [video_mode = 1]
-store_video = 0  # [= 0]: processed video is played real time
+store_video = 1  # [= 0]: processed video is played real time
                  # [= 1]: processed video stored in a file
 
 # Video file to test
@@ -86,7 +86,7 @@ nwindows = 9
 # Set the width of the windows +/- margin
 margin = 50
 # Set minimum number of pixels found to recenter window
-minpix = 50
+minpix = 100
 
 apply_search_around_poly = 0
 search_around_poly = 50

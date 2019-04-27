@@ -6,6 +6,13 @@ from collections import deque
 
 import config as cfg
 
+frame_failed = 0
+frame_restored = 0
+num_frame_till_restore = 0
+th = 300
+th1 = 0.001
+th2 = 0.5
+th3 = 750
 # Define a class to receive the characteristics of each line detection
 class Line:
     def __init__(self, buf_len = 5):
@@ -16,7 +23,7 @@ class Line:
         #polynomial coefficients averaged over the last n iterations
         self.best_fit = deque(maxlen=buf_len)
         #polynomial coefficients for the most recent fit
-        self.current_fit = [np.array([False])]
+        self.current_fit = [np.array([False]),np.array([False]),np.array([False])]
 
 def find_lane_pixels(binary_warped):
     # Take a histogram of the bottom half of the image
@@ -93,6 +100,7 @@ def find_lane_pixels(binary_warped):
 
 
 def fit_polynomial(binary_warped, left_line, right_line):
+    global frame_failed, frame_restored, num_frame_till_restore, th, th1, th2, th3
     # Find our lane pixels first
     leftx, lefty, rightx, righty, out_img = find_lane_pixels(binary_warped)
 
@@ -108,20 +116,33 @@ def fit_polynomial(binary_warped, left_line, right_line):
         left_fitx = left_fit[0] * ploty ** 2 + left_fit[1] * ploty + left_fit[2]
         right_fitx = right_fit[0] * ploty ** 2 + right_fit[1] * ploty + right_fit[2]
 
-        if np.abs(left_fitx[-1] - right_fitx[-1] - (left_fitx[0] - right_fitx[0])) < 500:
+        if (np.abs(left_fitx[-1] - right_fitx[-1] - (left_fitx[0] - right_fitx[0])) < th) & (np.abs(left_fit[0]-left_line.current_fit[0]) < th1) \
+                & (np.abs(left_fit[1] - left_line.current_fit[1]) < th2)  & (np.abs(left_fit[2]-left_line.current_fit[2]) < th3):
             ## Visualization ##
             # Colors in the left and right lane regions
-            out_img[lefty, leftx] = [255, 0, 0]
-            out_img[righty, rightx] = [0, 0, 255]
-            left_line.recent_xfitted.append(left_fitx)
-            left_line.best_fit.append(left_fit)
-            right_line.recent_xfitted.append(right_fitx)
-            right_line.best_fit.append(right_fit)
+            if (frame_failed == 0) | (frame_failed & (frame_restored == 1)):
+                out_img[lefty, leftx] = [255, 0, 0]
+                out_img[righty, rightx] = [0, 0, 255]
+                left_line.recent_xfitted.append(left_fitx)
+                left_line.best_fit.append(left_fit)
+                right_line.recent_xfitted.append(right_fitx)
+                right_line.best_fit.append(right_fit)
+            else:
+                if num_frame_till_restore == 4:
+                    frame_restored = 1
+                    num_frame_till_restore = 0
+                else:
+                    num_frame_till_restore += 1
+            th = 200
+            th1 = 0.0005
+            th2 = 0.1
+            th3 = 200
+
         else:
             print('dont update')
 
     except:
-        frame_failed_cnt = 1
+        frame_failed = 1
         frame_restored = 0
 
     return out_img, left_line, right_line
