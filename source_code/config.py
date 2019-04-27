@@ -9,14 +9,14 @@ import numpy as np
 #          __/ |                                                  __/ |
 #         |___/                                                  |___/
 # -------------------------------------------------------------------------------
-video_mode = 0  # [= 0]: test images, =1 video playback
+video_mode = 1  # [= 0]: test images, =1 video playback
 
 # The following param only when [video_mode = 1]
 store_video = 0  # [= 0]: processed video is played real time
                  # [= 1]: processed video stored in a file
 
 # Video file to test
-video_file_name = '../project_video'
+video_file_name = '../challenge_video'  #'../project_video'
 
 # Path to the subfolders
 cam_cal_folder = '../camera_cal/'  # calibration images
@@ -84,11 +84,11 @@ perspective_transform_dst = np.float32([[300, 0],
 # Choose the number of sliding windows
 nwindows = 9
 # Set the width of the windows +/- margin
-margin = 100
+margin = 50
 # Set minimum number of pixels found to recenter window
 minpix = 50
 
-apply_search_around_poly = 1
+apply_search_around_poly = 0
 search_around_poly = 50
 
 # nwindows = 9

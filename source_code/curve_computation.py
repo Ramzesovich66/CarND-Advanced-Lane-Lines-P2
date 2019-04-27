@@ -98,27 +98,31 @@ def fit_polynomial(binary_warped, left_line, right_line):
 
 
     # Fit a second order polynomial to each using `np.polyfit`
+    try:
+        left_fit = np.polyfit(lefty, leftx, 2)
+        right_fit = np.polyfit(righty, rightx, 2)
 
-    left_fit = np.polyfit(lefty, leftx, 2)
-    right_fit = np.polyfit(righty, rightx, 2)
+        # Generate x and y values for plotting
+        ploty = np.linspace(0, binary_warped.shape[0] - 1, binary_warped.shape[0])
 
-    # Generate x and y values for plotting
-    ploty = np.linspace(0, binary_warped.shape[0] - 1, binary_warped.shape[0])
+        left_fitx = left_fit[0] * ploty ** 2 + left_fit[1] * ploty + left_fit[2]
+        right_fitx = right_fit[0] * ploty ** 2 + right_fit[1] * ploty + right_fit[2]
 
-    left_fitx = left_fit[0] * ploty ** 2 + left_fit[1] * ploty + left_fit[2]
-    right_fitx = right_fit[0] * ploty ** 2 + right_fit[1] * ploty + right_fit[2]
+        if np.abs(left_fitx[-1] - right_fitx[-1] - (left_fitx[0] - right_fitx[0])) < 500:
+            ## Visualization ##
+            # Colors in the left and right lane regions
+            out_img[lefty, leftx] = [255, 0, 0]
+            out_img[righty, rightx] = [0, 0, 255]
+            left_line.recent_xfitted.append(left_fitx)
+            left_line.best_fit.append(left_fit)
+            right_line.recent_xfitted.append(right_fitx)
+            right_line.best_fit.append(right_fit)
+        else:
+            print('dont update')
 
-    ## Visualization ##
-    # Colors in the left and right lane regions
-    out_img[lefty, leftx] = [255, 0, 0]
-    out_img[righty, rightx] = [0, 0, 255]
-    left_line.recent_xfitted.append(left_fitx)
-    #left_line.current_fit = left_fit
-    left_line.best_fit.append(left_fit)
-
-    right_line.recent_xfitted.append(right_fitx)
-    #right_line.current_fit = right_fit
-    right_line.best_fit.append(right_fit)
+    except:
+        frame_failed_cnt = 1
+        frame_restored = 0
 
     return out_img, left_line, right_line
 
