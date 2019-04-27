@@ -12,7 +12,7 @@ class Line:
         # was the line detected in the last iteration?
         self.detected = False
         # x values of the last n fits of the line
-        self.recent_xfitted = []
+        self.recent_xfitted = deque(maxlen=buf_len)
         #average x values of the fitted line over the last n iterations
         self.bestx = None
         #polynomial coefficients averaged over the last n iterations
@@ -108,37 +108,44 @@ def fit_polynomial(binary_warped, left_line, right_line):
     # Find our lane pixels first
     leftx, lefty, rightx, righty, out_img = find_lane_pixels(binary_warped)
 
+
     # Fit a second order polynomial to each using `np.polyfit`
+
     left_fit = np.polyfit(lefty, leftx, 2)
     right_fit = np.polyfit(righty, rightx, 2)
 
     # Generate x and y values for plotting
     ploty = np.linspace(0, binary_warped.shape[0] - 1, binary_warped.shape[0])
-    try:
-        left_fitx = left_fit[0] * ploty ** 2 + left_fit[1] * ploty + left_fit[2]
-        right_fitx = right_fit[0] * ploty ** 2 + right_fit[1] * ploty + right_fit[2]
-    except TypeError:
-        # Avoids an error if `left` and `right_fit` are still none or incorrect
-        print('The function failed to fit a line!')
-        left_fitx = 1 * ploty ** 2 + 1 * ploty
-        right_fitx = 1 * ploty ** 2 + 1 * ploty
+
+    left_fitx = left_fit[0] * ploty ** 2 + left_fit[1] * ploty + left_fit[2]
+    right_fitx = right_fit[0] * ploty ** 2 + right_fit[1] * ploty + right_fit[2]
 
     ## Visualization ##
     # Colors in the left and right lane regions
     out_img[lefty, leftx] = [255, 0, 0]
     out_img[righty, rightx] = [0, 0, 255]
-
     left_line.allx = leftx
     left_line.ally = lefty
-    left_line.bestx = left_fitx
+    left_line.recent_xfitted.append(left_fitx)
     left_line.current_fit = left_fit
 
     right_line.allx = rightx
     right_line.ally = righty
-    right_line.bestx = right_fitx
+    right_line.recent_xfitted.append(right_fitx)
     right_line.current_fit = right_fit
 
     return out_img, left_line, right_line
+
+
+def long_term_filter_init(left_line, right_line):
+    left_line.bestx = left_line.recent_xfitted[-1]
+    right_line.bestx = right_line.recent_xfitted[-1]
+    return left_line, right_line
+
+def long_term_filter(left_line, right_line):
+    left_line.bestx = np.mean(left_line.recent_xfitted, axis=0)
+    right_line.bestx = np.mean(right_line.recent_xfitted, axis=0)
+    return left_line, right_line
 
 # Calculate the radius of curvature in meters for both lane lines
 def measure_curvature(left_fit_cr, right_fit_cr, ploty):
@@ -237,8 +244,8 @@ def search_around_poly(binary_warped, left_line, right_line):
     cv2.fillPoly(window_img, np.int_([right_line_pts]), (0, 255, 0))
     out_img = cv2.addWeighted(out_img, 1, window_img, 0.3, 0)
 
-    left_line.bestx = left_fitx
-    right_line.bestx = right_fitx
+    left_line.recent_xfitted.append(left_fitx)
+    right_line.recent_xfitted.append(right_fitx)
 
     return out_img, left_line, right_line
 

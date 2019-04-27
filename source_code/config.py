@@ -9,7 +9,7 @@ import numpy as np
 #          __/ |                                                  __/ |
 #         |___/                                                  |___/
 # -------------------------------------------------------------------------------
-video_mode = 1  # [= 0]: test images, =1 video playback
+video_mode = 0  # [= 0]: test images, =1 video playback
 
 # The following param only when [video_mode = 1]
 store_video = 1  # [= 0]: processed video is played real time
@@ -50,7 +50,7 @@ y_dim = 6  # chessboard size y axis
 # -------------------------------------------------------------------------------
 
 #
-num_of_frames = 1  # Averaging is done over this number of frames
+num_of_frames = 10  # Averaging is done over this number of frames
 
 # Binary image settings
 algo_version = 1  #  [= 0] simple algo: S color channel (HLS) && Sobel x, gradient threshold
@@ -61,7 +61,7 @@ else:
     s_thresh = (70, 255)
 
 # Gradient algos
-sobel_kernel_size = 7
+sobel_kernel_size = 17
 sxy_thresh = (20, 200)  # Sobel x or y, gradient threshold
 
 # Use cv2.morphologyEx with kernel size 3x3

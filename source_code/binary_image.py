@@ -72,7 +72,8 @@ def binary_image(img):
         hsv_max_yellow = np.all(hsv < np.array([40, 255, 255]), axis=2)
         hsv_yellow_bin = hsv_min_yellow & hsv_max_yellow
         combined_yellow = np.zeros_like(gradx)
-        combined_yellow[((s_binary == 1) & (hsv_yellow_bin == 1))] = 1
+        #combined_yellow[((s_binary == 1) & (hsv_yellow_bin == 1))] = 1
+        combined_yellow[((hsv_min_yellow == 1))] = 1
         color_binary = np.dstack((np.zeros_like(s_binary), combined_white, combined_yellow)) * 255
         binary_img = combined_white | combined_yellow
     else:
