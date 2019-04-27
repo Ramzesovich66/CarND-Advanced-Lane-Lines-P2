@@ -11,9 +11,7 @@ def annotate_frame(undist, left_line, right_line):
     # Create an image to draw the lines on
     color_warp = np.zeros_like(undist).astype(np.uint8)
 
-    #left_fitx = left_line.bestx
     left_fit = left_line.current_fit
-    #right_fitx = right_line.bestx
     right_fit = right_line.current_fit
 
     ploty = np.linspace(0, undist.shape[0] - 1, undist.shape[0])
@@ -39,16 +37,7 @@ def annotate_frame(undist, left_line, right_line):
     left_curve, right_curve = measure_curvature(left_fit, right_fit, ploty)
     # Compute vehicle offset relative to the middle of the lane
     vehicle_offset = vehicle_offset_calc(undist, left_fitx[-1], right_fitx[-1])
-    '''
-    label_str = 'Lane radius: %.1f km' % ((left_curve + right_curve) / 2000)
-    result = cv2.putText(result, label_str, (15, 45), 0, 1, (255, 255, 255), 2)
-    # Annotate vehicle offset from center
-    if vehicle_offset <= 0:
-        label_str = 'Vehicle offset to the left: %.1f m' % (abs(vehicle_offset))
-    else:
-        label_str = 'Vehicle offset to the right: %.2f m' % (abs(vehicle_offset))
-    result = cv2.putText(result, label_str, (15, 90), 0, 1, (255, 255, 255), 2)
-    '''
+
     label_str = 'Left line radius: %.1f km' % (left_curve/1000)
     result = cv2.putText(result, label_str, (15, 45), 0, 1, (255, 255, 255), 2)
     label_str = 'Right line radius: %.1f m' % (right_curve/1000)
