@@ -16,7 +16,7 @@ class Line:
         #average x values of the fitted line over the last n iterations
         self.bestx = None
         #polynomial coefficients averaged over the last n iterations
-        self.best_fit = None
+        self.best_fit = deque(maxlen=buf_len)
         #polynomial coefficients for the most recent fit
         self.current_fit = [np.array([False])]
         #radius of curvature of the line in some units
@@ -127,12 +127,14 @@ def fit_polynomial(binary_warped, left_line, right_line):
     left_line.allx = leftx
     left_line.ally = lefty
     left_line.recent_xfitted.append(left_fitx)
-    left_line.current_fit = left_fit
+    #left_line.current_fit = left_fit
+    left_line.best_fit.append(left_fit)
 
     right_line.allx = rightx
     right_line.ally = righty
     right_line.recent_xfitted.append(right_fitx)
-    right_line.current_fit = right_fit
+    #right_line.current_fit = right_fit
+    right_line.best_fit.append(right_fit)
 
     return out_img, left_line, right_line
 
@@ -140,11 +142,15 @@ def fit_polynomial(binary_warped, left_line, right_line):
 def long_term_filter_init(left_line, right_line):
     left_line.bestx = left_line.recent_xfitted[-1]
     right_line.bestx = right_line.recent_xfitted[-1]
+    left_line.current_fit = left_line.best_fit[-1]
+    right_line.current_fit = right_line.best_fit[-1]
     return left_line, right_line
 
 def long_term_filter(left_line, right_line):
     left_line.bestx = np.mean(left_line.recent_xfitted, axis=0)
     right_line.bestx = np.mean(right_line.recent_xfitted, axis=0)
+    left_line.current_fit = np.mean(left_line.best_fit, axis=0)
+    right_line.current_fit = np.mean(right_line.best_fit, axis=0)
     return left_line, right_line
 
 # Calculate the radius of curvature in meters for both lane lines
@@ -216,7 +222,7 @@ def search_around_poly(binary_warped, left_line, right_line):
     righty = nonzeroy[right_lane_inds]
 
     # Fit new polynomials
-    left_fitx, right_fitx, ploty, left_line.current_fit, right_line.current_fit = \
+    left_fitx, right_fitx, ploty, left_fit, right_fit = \
         fit_poly(binary_warped.shape, leftx, lefty, rightx, righty)
 
     ## Visualization ##
@@ -247,6 +253,8 @@ def search_around_poly(binary_warped, left_line, right_line):
     left_line.recent_xfitted.append(left_fitx)
     right_line.recent_xfitted.append(right_fitx)
 
+    left_line.best_fit.append(left_fit)
+    right_line.best_fit.append(right_fit)
     return out_img, left_line, right_line
 
 

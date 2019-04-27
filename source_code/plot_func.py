@@ -11,12 +11,17 @@ def annotate_frame(undist, left_line, right_line):
     # Create an image to draw the lines on
     color_warp = np.zeros_like(undist).astype(np.uint8)
 
-    left_fitx = left_line.bestx
+    #left_fitx = left_line.bestx
     left_fit = left_line.current_fit
-    right_fitx = right_line.bestx
+    #right_fitx = right_line.bestx
     right_fit = right_line.current_fit
 
     ploty = np.linspace(0, undist.shape[0] - 1, undist.shape[0])
+    ### TO-DO: Calc both polynomials using ploty, left_fit and right_fit ###
+    left_fitx = left_fit[0] * ploty ** 2 + left_fit[1] * ploty + left_fit[2]
+    right_fitx = right_fit[0] * ploty ** 2 + right_fit[1] * ploty + right_fit[2]
+
+
     # Recast the x and y points into usable format for cv2.fillPoly()
     pts_left = np.array([np.transpose(np.vstack([left_fitx, ploty]))])
     pts_right = np.array([np.flipud(np.transpose(np.vstack([right_fitx, ploty])))])
