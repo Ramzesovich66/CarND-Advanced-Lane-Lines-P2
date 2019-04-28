@@ -106,7 +106,7 @@ search_around_poly = 50
 ym_per_pix = 30 / 720  # meters per pixel in y dimension
 xm_per_pix = 3.7 / 700  # meters per pixel in x dimension
 
-# Set some initial thresholds, purpose is here to pass a challenge video
+# Thresholds to removed bad frames
 th = 1000  # Checking that the lines are separated by approximately the same distance horizontally
 th1 = 0.001  # Checks first poly coefficient
 th2 = 1  # Checks second poly coefficient
