@@ -1,18 +1,12 @@
 import numpy as np
 import cv2
-import matplotlib.pyplot as plt
 
 from collections import deque
 
+# Import configuration parameters
 import config as cfg
 
-frame_failed = 0
-frame_restored = 0
-num_frame_till_restore = 0
-th = 300
-th1 = 0.001
-th2 = 0.5
-th3 = 750
+
 # Define a class to receive the characteristics of each line detection
 class Line:
     def __init__(self, buf_len = 5):
@@ -21,10 +15,11 @@ class Line:
         #average x values of the fitted line over the last n iterations
         self.bestx = None
         #polynomial coefficients averaged over the last n iterations
-        self.best_fit = deque(maxlen=buf_len)
+        self.best_fit = deque(maxlen=buf_len) # circular buffer
         #polynomial coefficients for the most recent fit
-        self.current_fit = [np.array([False]),np.array([False]),np.array([False])]
+        self.current_fit = [np.array([False]), np.array([False]), np.array([False])]
 
+# This function is a reuse from the lecture. Finds lane pixels
 def find_lane_pixels(binary_warped):
     # Take a histogram of the bottom half of the image
     histogram = np.sum(binary_warped[binary_warped.shape[0] // 2:, :], axis=0)
@@ -98,12 +93,12 @@ def find_lane_pixels(binary_warped):
 
     return leftx, lefty, rightx, righty, out_img
 
-
+# This function is a reuse from the lecture with minor modification to pass challenge video.
+# Fits a second order polynomial.
 def fit_polynomial(binary_warped, left_line, right_line):
-    global frame_failed, frame_restored, num_frame_till_restore, th, th1, th2, th3
+
     # Find our lane pixels first
     leftx, lefty, rightx, righty, out_img = find_lane_pixels(binary_warped)
-
 
     # Fit a second order polynomial to each using `np.polyfit`
     try:
@@ -116,38 +111,42 @@ def fit_polynomial(binary_warped, left_line, right_line):
         left_fitx = left_fit[0] * ploty ** 2 + left_fit[1] * ploty + left_fit[2]
         right_fitx = right_fit[0] * ploty ** 2 + right_fit[1] * ploty + right_fit[2]
 
-        if (np.abs(left_fitx[-1] - right_fitx[-1] - (left_fitx[0] - right_fitx[0])) < th) & (np.abs(left_fit[0]-left_line.current_fit[0]) < th1) \
-                & (np.abs(left_fit[1] - left_line.current_fit[1]) < th2)  & (np.abs(left_fit[2]-left_line.current_fit[2]) < th3):
+        # Checks that the lines are separated by approximately the same distance horizontally and
+        # compares poly coefficients with previous fits. If it fails this frame is discarded
+        # Perform this check only for the challenge video, don't do it for project video or test images
+        is_a_good_frame = ((np.abs(left_fitx[-1] - right_fitx[-1] - (left_fitx[0] - right_fitx[0])) < cfg.th) & \
+         (np.abs(left_fit[0] - left_line.current_fit[0]) < cfg.th1) \
+         & (np.abs(left_fit[1] - left_line.current_fit[1]) < cfg.th2) & \
+         (np.abs(left_fit[2] - left_line.current_fit[2]) < cfg.th3))
+
+        if (0 == cfg.video_mode) | (cfg.video_file_name == '../project_video') | is_a_good_frame:
             ## Visualization ##
             # Colors in the left and right lane regions
-            if (frame_failed == 0) | (frame_failed & (frame_restored == 1)):
-                out_img[lefty, leftx] = [255, 0, 0]
-                out_img[righty, rightx] = [0, 0, 255]
-                left_line.recent_xfitted.append(left_fitx)
-                left_line.best_fit.append(left_fit)
-                right_line.recent_xfitted.append(right_fitx)
-                right_line.best_fit.append(right_fit)
-            else:
-                if num_frame_till_restore == 4:
-                    frame_restored = 1
-                    num_frame_till_restore = 0
-                else:
-                    num_frame_till_restore += 1
-            th = 200
-            th1 = 0.0005
-            th2 = 0.1
-            th3 = 200
+            out_img[lefty, leftx] = [255, 0, 0]
+            out_img[righty, rightx] = [0, 0, 255]
+            left_line.recent_xfitted.append(left_fitx)
+            left_line.best_fit.append(left_fit)
+            right_line.recent_xfitted.append(right_fitx)
+            right_line.best_fit.append(right_fit)
+
+            # After first detections tighten up the parameters
+            if (1 == cfg.video_mode):
+                cfg.th = 300
+                cfg.th1 = 0.0007
+                cfg.th2 = 0.2
+                cfg.th3 = 300
 
         else:
-            print('dont update')
+            print('bad frame')
+            #pass  # skip this 'bad' frame
 
     except:
-        frame_failed = 1
-        frame_restored = 0
+        print('bad frame')
+        #pass
 
     return out_img, left_line, right_line
 
-
+# Sets the poly coefficients to the last coefficients computed
 def long_term_filter_init(left_line, right_line):
     left_line.bestx = left_line.recent_xfitted[-1]
     right_line.bestx = right_line.recent_xfitted[-1]
@@ -155,6 +154,7 @@ def long_term_filter_init(left_line, right_line):
     right_line.current_fit = right_line.best_fit[-1]
     return left_line, right_line
 
+# Takes a mean over accumulated over time poly coefficients
 def long_term_filter(left_line, right_line):
     left_line.bestx = np.mean(left_line.recent_xfitted, axis=0)
     right_line.bestx = np.mean(right_line.recent_xfitted, axis=0)
@@ -164,9 +164,6 @@ def long_term_filter(left_line, right_line):
 
 # Calculate the radius of curvature in meters for both lane lines
 def measure_curvature(left_fit_cr, right_fit_cr, ploty):
-    '''
-    Calculates the curvature of polynomial functions in meters.
-    '''
     # Define y-value where we want radius of curvature
     # We'll choose the maximum y-value, corresponding to the bottom of the image
     y_eval = np.max(ploty)
@@ -174,12 +171,14 @@ def measure_curvature(left_fit_cr, right_fit_cr, ploty):
     # Calculation of R_curve (radius of curvature)
     left_curverad = ((1 + (left_fit_cr[0] * 2 * y_eval * cfg.ym_per_pix + left_fit_cr[1]) ** 2) ** (3 / 2)) / np.abs(
         2 * left_fit_cr[0])
+
     # Calculation of the left line here
     right_curverad = ((1 + (right_fit_cr[0] * 2 * y_eval * cfg.ym_per_pix + right_fit_cr[1]) ** 2) ** (3 / 2)) / np.abs(
         2 * right_fit_cr[0])
 
     return left_curverad, right_curverad
 
+# Calculate vehicle center offset in meters
 def vehicle_offset_calc(undist, bottom_x_left, bottom_x_right):
     # Calculate vehicle center offset in pixels
     vehicle_offset = undist.shape[1]/2 - (bottom_x_left + bottom_x_right)/2
@@ -188,21 +187,20 @@ def vehicle_offset_calc(undist, bottom_x_left, bottom_x_right):
 
     return vehicle_offset
 
-
+# Fits a second order polynomial to each line. Reuse from a lecture
 def fit_poly(img_shape, leftx, lefty, rightx, righty):
-    ### TO-DO: Fit a second order polynomial to each with np.polyfit() ###
+    #Fit a second order polynomial to each with np.polyfit()
     left_fit = np.polyfit(lefty, leftx, 2)
     right_fit = np.polyfit(righty, rightx, 2)
     # Generate x and y values for plotting
     ploty = np.linspace(0, img_shape[0] - 1, img_shape[0])
-    ### TO-DO: Calc both polynomials using ploty, left_fit and right_fit ###
+    # Calc both polynomials using ploty, left_fit and right_fit #
     left_fitx = left_fit[0] * ploty ** 2 + left_fit[1] * ploty + left_fit[2]
     right_fitx = right_fit[0] * ploty ** 2 + right_fit[1] * ploty + right_fit[2]
     return left_fitx, right_fitx, ploty, left_fit, right_fit
 
-
+#  Search for the new line within +/- some margin around the old line center.
 def search_around_poly(binary_warped, left_line, right_line):
-    # HYPERPARAMETER
     margin = cfg.search_around_poly
 
     # Grab activated pixels
@@ -212,10 +210,8 @@ def search_around_poly(binary_warped, left_line, right_line):
 
     left_fit = left_line.current_fit
     right_fit = right_line.current_fit
-    ### TO-DO: Set the area of search based on activated x-values ###
-    ### within the +/- margin of our polynomial function ###
-    ### Hint: consider the window areas for the similarly named variables ###
-    ### in the previous quiz, but change the windows to our new search area ###
+    # Set the area of search based on activated x-values
+    # within the +/- margin of our polynomial function
     left_lane_inds = ((nonzerox > (left_fit[0] * (nonzeroy ** 2) + left_fit[1] * nonzeroy +
                                    left_fit[2] - margin)) & (nonzerox < (left_fit[0] * (nonzeroy ** 2) +
                                     left_fit[1] * nonzeroy + left_fit[2] + margin)))
@@ -259,9 +255,9 @@ def search_around_poly(binary_warped, left_line, right_line):
     cv2.fillPoly(window_img, np.int_([right_line_pts]), (0, 255, 0))
     out_img = cv2.addWeighted(out_img, 1, window_img, 0.3, 0)
 
+    # Store coefficients into a circular buffer
     left_line.recent_xfitted.append(left_fitx)
     right_line.recent_xfitted.append(right_fitx)
-
     left_line.best_fit.append(left_fit)
     right_line.best_fit.append(right_fit)
     return out_img, left_line, right_line

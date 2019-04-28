@@ -1,9 +1,12 @@
 import numpy as np
 import cv2
+import matplotlib.image as mpimg
 import glob
 import pickle
 
+# Import configuration parameters
 import config as cfg
+
 
 def camera_calibration():
     # Make a list of calibration images
@@ -52,6 +55,7 @@ def camera_calibration():
     dist_pickle["imgpoints"] = imgpoints
     pickle.dump(dist_pickle, open("calibration_data.p", "wb"))
 
+# Performs image distortion correction
 def distortion_correction(dist_img):
     dist_pickle = pickle.load(open("calibration_data.p", "rb"))
     mtx = dist_pickle["mtx"]
@@ -59,3 +63,14 @@ def distortion_correction(dist_img):
     undist_img = cv2.undistort(dist_img, mtx, dist, None, mtx)
 
     return undist_img
+
+
+# Main function
+if __name__ == '__main__':
+
+    images = glob.glob(cfg.cam_cal_folder + '*.jpg')
+    for idx, fname in enumerate(images):
+        img = mpimg.imread(fname)
+        undist = distortion_correction(img)
+        write_name = cfg.output_img_folder + 'chessboard_undist_img' + str(idx) + '.jpg'
+        cv2.imwrite(write_name, undist)
