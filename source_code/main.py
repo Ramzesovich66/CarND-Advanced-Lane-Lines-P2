@@ -3,7 +3,7 @@ import glob
 import numpy as np
 import matplotlib.image as mpimg
 from moviepy.editor import VideoFileClip
-
+import matplotlib.pyplot as plt
 # Import configuration parameters
 import config as cfg
 
@@ -59,7 +59,7 @@ def pipeline(img, *args):
             ploty = np.linspace(0, undist.shape[0] - 1, undist.shape[0])
             plot_images(img, undist, 0, 'Original Image', 'Undistored Image', 20, file_name + '_undist')
             plot_images(undist, color_binary, 0, 'Undistored Image', 'Binary image, blue - yellow color detection, '
-                        'green - white color detection', 10,file_name + '_binary_color')
+                       'green - white color detection', 10,file_name + '_binary_color')
             plot_images(undist, out_img, 1, 'Undistored Image', 'Binary image in bird view', 20,
                         file_name + '_binary_bird_view', (left_line.bestx, right_line.bestx, ploty))
             plot_images(undist, result, 0, 'Undistored Image', 'Processed Image', 20, file_name + '_final')

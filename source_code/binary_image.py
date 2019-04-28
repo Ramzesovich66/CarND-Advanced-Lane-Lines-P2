@@ -1,6 +1,6 @@
 import numpy as np
 import cv2
-
+import matplotlib.pyplot as plt
 # Import configuration parameters
 import config as cfg
 
@@ -71,11 +71,11 @@ def binary_image(img):
     if cfg.algo_version == 1:
         # Additionally Extract white line by converting an image into gray scale and then do color thresholding (step 1.2)
         gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
-        ret, binary = cv2.threshold(gray, thresh=170, maxval=255, type=cv2.THRESH_BINARY)
+        ret, binary = cv2.threshold(gray, thresh=210, maxval=255, type=cv2.THRESH_BINARY)
         combined_white = np.zeros_like(gradx)
         # Now, 'AND' step 1.1 and step 1.2 for the best white line extraction
-        combined_white[((gradx == 1) & (binary == 255))] = 1
-
+        #combined_white[((gradx == 1) & (binary == 255))] = 1
+        combined_white[((binary == 255))] = 1
         # Yellow line (step 2.2). Convert an image into hsv color space and do color thresholding
         hsv = cv2.cvtColor(img, cv2.COLOR_RGB2HSV)
         hsv_min_yellow = np.all(hsv > np.array([0, 100, 100]), axis=2)

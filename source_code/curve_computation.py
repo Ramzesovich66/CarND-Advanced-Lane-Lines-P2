@@ -1,6 +1,6 @@
 import numpy as np
 import cv2
-
+import matplotlib.pyplot as plt
 from collections import deque
 
 # Import configuration parameters
@@ -118,8 +118,12 @@ def fit_polynomial(binary_warped, left_line, right_line):
          (np.abs(left_fit[0] - left_line.current_fit[0]) < cfg.th1) \
          & (np.abs(left_fit[1] - left_line.current_fit[1]) < cfg.th2) & \
          (np.abs(left_fit[2] - left_line.current_fit[2]) < cfg.th3))
+        # Check against maximum lane width
+        is_a_good_frame &= (np.abs(left_fitx[-1] - right_fitx[-1]) < cfg.lane_max_width) & \
+                           (np.abs(left_fitx[0] - right_fitx[0]) < cfg.lane_max_width)
 
-        if (0 == cfg.video_mode) | (cfg.video_file_name == '../project_video') | is_a_good_frame:
+        #if (0 == cfg.video_mode) | (cfg.video_file_name == '../project_video') | is_a_good_frame:
+        if (0 == cfg.video_mode) | is_a_good_frame:
             ## Visualization ##
             # Colors in the left and right lane regions
             out_img[lefty, leftx] = [255, 0, 0]
@@ -128,14 +132,6 @@ def fit_polynomial(binary_warped, left_line, right_line):
             left_line.best_fit.append(left_fit)
             right_line.recent_xfitted.append(right_fitx)
             right_line.best_fit.append(right_fit)
-
-            # After first detections tighten up the parameters
-            if (1 == cfg.video_mode):
-                cfg.th = 300
-                cfg.th1 = 0.0007
-                cfg.th2 = 0.2
-                cfg.th3 = 300
-
         else:
             print('bad frame')
             #pass  # skip this 'bad' frame
@@ -226,40 +222,62 @@ def search_around_poly(binary_warped, left_line, right_line):
     rightx = nonzerox[right_lane_inds]
     righty = nonzeroy[right_lane_inds]
 
-    # Fit new polynomials
-    left_fitx, right_fitx, ploty, left_fit, right_fit = \
-        fit_poly(binary_warped.shape, leftx, lefty, rightx, righty)
-
     ## Visualization ##
     # Create an image to draw on and an image to show the selection window
     out_img = np.dstack((binary_warped, binary_warped, binary_warped)) * 255
-    window_img = np.zeros_like(out_img)
-    # Color in left and right line pixels
-    out_img[nonzeroy[left_lane_inds], nonzerox[left_lane_inds]] = [255, 0, 0]
-    out_img[nonzeroy[right_lane_inds], nonzerox[right_lane_inds]] = [0, 0, 255]
 
-    # Generate a polygon to illustrate the search window area
-    # And recast the x and y points into usable format for cv2.fillPoly()
-    left_line_window1 = np.array([np.transpose(np.vstack([left_fitx - margin, ploty]))])
-    left_line_window2 = np.array([np.flipud(np.transpose(np.vstack([left_fitx + margin,
-                                                                    ploty])))])
-    left_line_pts = np.hstack((left_line_window1, left_line_window2))
+    # Fit new polynomials
+    try:
+        left_fitx, right_fitx, ploty, left_fit, right_fit = \
+            fit_poly(binary_warped.shape, leftx, lefty, rightx, righty)
 
-    right_line_window1 = np.array([np.transpose(np.vstack([right_fitx - margin, ploty]))])
-    right_line_window2 = np.array([np.flipud(np.transpose(np.vstack([right_fitx + margin,
-                                                                     ploty])))])
-    right_line_pts = np.hstack((right_line_window1, right_line_window2))
+        # Checks that the lines are separated by approximately the same distance horizontally and
+        # compares poly coefficients with previous fits. If it fails this frame is discarded
+        # Perform this check only for the challenge video, don't do it for project video or test images
+        is_a_good_frame = ((np.abs(left_fitx[-1] - right_fitx[-1] - (left_fitx[0] - right_fitx[0])) < cfg.th) & \
+                           (np.abs(left_fit[0] - left_line.current_fit[0]) < cfg.th1) \
+                           & (np.abs(left_fit[1] - left_line.current_fit[1]) < cfg.th2) & \
+                           (np.abs(left_fit[2] - left_line.current_fit[2]) < cfg.th3))
+        # Check against maximum lane width
+        is_a_good_frame &= (np.abs(left_fitx[-1] - right_fitx[-1]) < cfg.lane_max_width) & \
+                       (np.abs(left_fitx[0] - right_fitx[0]) < cfg.lane_max_width)
 
-    # Draw the lane onto the warped blank image
-    cv2.fillPoly(window_img, np.int_([left_line_pts]), (0, 255, 0))
-    cv2.fillPoly(window_img, np.int_([right_line_pts]), (0, 255, 0))
-    out_img = cv2.addWeighted(out_img, 1, window_img, 0.3, 0)
 
-    # Store coefficients into a circular buffer
-    left_line.recent_xfitted.append(left_fitx)
-    right_line.recent_xfitted.append(right_fitx)
-    left_line.best_fit.append(left_fit)
-    right_line.best_fit.append(right_fit)
+        if is_a_good_frame:
+            window_img = np.zeros_like(out_img)
+            # Color in left and right line pixels
+            out_img[nonzeroy[left_lane_inds], nonzerox[left_lane_inds]] = [255, 0, 0]
+            out_img[nonzeroy[right_lane_inds], nonzerox[right_lane_inds]] = [0, 0, 255]
+
+            # Generate a polygon to illustrate the search window area
+            # And recast the x and y points into usable format for cv2.fillPoly()
+            left_line_window1 = np.array([np.transpose(np.vstack([left_fitx - margin, ploty]))])
+            left_line_window2 = np.array([np.flipud(np.transpose(np.vstack([left_fitx + margin,
+                                                                            ploty])))])
+            left_line_pts = np.hstack((left_line_window1, left_line_window2))
+
+            right_line_window1 = np.array([np.transpose(np.vstack([right_fitx - margin, ploty]))])
+            right_line_window2 = np.array([np.flipud(np.transpose(np.vstack([right_fitx + margin,
+                                                                             ploty])))])
+            right_line_pts = np.hstack((right_line_window1, right_line_window2))
+
+            # Draw the lane onto the warped blank image
+            cv2.fillPoly(window_img, np.int_([left_line_pts]), (0, 255, 0))
+            cv2.fillPoly(window_img, np.int_([right_line_pts]), (0, 255, 0))
+            out_img = cv2.addWeighted(out_img, 1, window_img, 0.3, 0)
+
+            # Store coefficients into a circular buffer
+            left_line.recent_xfitted.append(left_fitx)
+            right_line.recent_xfitted.append(right_fitx)
+            left_line.best_fit.append(left_fit)
+            right_line.best_fit.append(right_fit)
+        else:
+            print('bad frame')
+            #pass  # skip this 'bad' frame
+
+    except:
+        print('bad frame')
+        #pass
     return out_img, left_line, right_line
 
 
