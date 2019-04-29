@@ -18,17 +18,19 @@ frame_number = 0
 left_line = Line(buf_len=cfg.num_of_frames)
 right_line = Line(buf_len=cfg.num_of_frames)
 
+
 # Processing pipeline
 def pipeline(img, *args):
     global left_line, right_line, frame_number
 
-    # 1. Undistort an image
+    # 1. Apply a distortion correction to raw images.
     undist = distortion_correction(img)
-    # 2. Perfome binarization, i.e. extract left and right line pixels
+    # 2. Use color transforms, gradients, etc., to create a thresholded binary image.
     color_binary, bin_img = binary_image(undist)
-    # 3. Bird’s-Eye View Transformation
+    # 3. Apply a perspective transform to rectify binary image ("birds-eye view").
     binary_warped = warper(bin_img)
 
+    # 4. Detect lane pixels and fit to find the lane boundary.
     # if it is a very first frame or a test image or a video mode without 'search from Prior' enabled
     if ((frame_number == 0) | (0 == cfg.video_mode) | ((1 == cfg.video_mode) & (0 == cfg.apply_search_around_poly))):
         # 4.1 locate the Lane Lines (with histogram and sliding window) and fit a 2nd order polynomial
@@ -47,6 +49,9 @@ def pipeline(img, *args):
         left_line, right_line = long_term_filter(left_line, right_line)
 
     # 5. Annotate a video frame with lane detected
+    # 5.1 Determine the curvature of the lane and vehicle position with respect to center.
+    # 5.2 Warp the detected lane boundaries back onto the original image.
+    # 5.3 Output visual display of the lane boundaries and numerical estimation of lane curvature and vehicle position.
     result = annotate_frame(undist, left_line, right_line)
     frame_number += 1
 
@@ -59,17 +64,19 @@ def pipeline(img, *args):
             ploty = np.linspace(0, undist.shape[0] - 1, undist.shape[0])
             plot_images(img, undist, 0, 'Original Image', 'Undistored Image', 20, file_name + '_undist')
             plot_images(undist, color_binary, 0, 'Undistored Image', 'Binary image, blue - yellow color detection, '
-                       'green - white color detection', 10,file_name + '_binary_color')
+                                                                     'green - white color detection', 10,
+                        file_name + '_binary_color')
             plot_images(undist, out_img, 1, 'Undistored Image', 'Binary image in bird view', 20,
                         file_name + '_binary_bird_view', (left_line.bestx, right_line.bestx, ploty))
             plot_images(undist, result, 0, 'Undistored Image', 'Processed Image', 20, file_name + '_final')
 
     return result
 
+
 # Main function
 if __name__ == '__main__':
 
-    # 1. Recompute calibration parameters if needed
+    # 1. If needed compute the camera calibration matrix and distortion coefficients given a set of chessboard images.
     if cfg.compute_calib_params:
         camera_calibration()
 
@@ -101,7 +108,7 @@ if __name__ == '__main__':
                 if ret:
                     color_frame = cv2.cvtColor(color_frame, cv2.COLOR_BGR2RGB)
                     merged_image = pipeline(color_frame)
-                    #cv2.imshow('blend', merged_image*255)
+                    # cv2.imshow('blend', merged_image*255)
                     cv2.imshow('blend', cv2.cvtColor(merged_image, cv2.COLOR_RGB2BGR))
                     if cv2.waitKey(1) & 0xFF == ord('q'):
                         break

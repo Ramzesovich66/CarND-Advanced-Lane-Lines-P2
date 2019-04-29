@@ -106,9 +106,9 @@ search_around_poly = 50
 ym_per_pix = 30 / 720  # meters per pixel in y dimension
 xm_per_pix = 3.7 / 700  # meters per pixel in x dimension
 
-# Thresholds to removed bad frames
+# Thresholds to remove bad frames
 th = 1000  # Checking that the lines are separated by approximately the same distance horizontally
 th1 = 0.001  # Checks first poly coefficient
 th2 = 1  # Checks second poly coefficient
 th3 = 300  # Checks third poly coefficient
-lane_max_width = 730
+lane_max_width = 730  # we assume that the lane width won't change with time
