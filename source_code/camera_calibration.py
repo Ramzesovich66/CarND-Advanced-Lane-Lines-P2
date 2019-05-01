@@ -3,6 +3,8 @@ import cv2
 import matplotlib.image as mpimg
 import glob
 import pickle
+import matplotlib.pyplot as plt
+from plot_func import plot_images
 
 # Import configuration parameters
 import config as cfg
@@ -73,4 +75,5 @@ if __name__ == '__main__':
         img = mpimg.imread(fname)
         undist = distortion_correction(img)
         write_name = cfg.output_img_folder + 'chessboard_undist_img' + str(idx) + '.jpg'
-        cv2.imwrite(write_name, undist)
+        #cv2.imwrite(write_name, undist)
+        plot_images(img, undist, 0, 'Original Image', 'Undistored Image', 20, 'chessboard_undist_img'+str(idx))

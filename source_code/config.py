@@ -31,7 +31,7 @@ clip_start = 3  # presenting the start of the subclip, used when clip_video = 1
 clip_end = 4  # presenting the start of the subclip, used when clip_video = 1
 
 # The following 2 params only when [video_mode = 0]
-store_img = 1  # =1: store intermediate images in test images mode
+store_img = 0  # =1: store intermediate images in test images mode
 plot_figures = 1  # if set =1 then plots figure at different stages of the pipeline
 
 # Calibration related params

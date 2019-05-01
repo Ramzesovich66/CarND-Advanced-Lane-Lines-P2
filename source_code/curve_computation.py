@@ -164,7 +164,7 @@ def measure_curvature(left_fit_cr, right_fit_cr, ploty):
     # We'll choose the maximum y-value, corresponding to the bottom of the image
     y_eval = np.max(ploty)
 
-    # Calculation of R_curve (radius of curvature)
+    # Calculation of R_curve in meters (radius of curvature)
     left_curverad = ((1 + (left_fit_cr[0] * 2 * y_eval * cfg.ym_per_pix + left_fit_cr[1]) ** 2) ** (3 / 2)) / np.abs(
         2 * left_fit_cr[0])
 
