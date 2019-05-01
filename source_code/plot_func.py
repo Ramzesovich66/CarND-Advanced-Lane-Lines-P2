@@ -34,6 +34,8 @@ def annotate_frame(undist, left_line, right_line):
     # Combine the result with the original image
     result = cv2.addWeighted(undist, 1, newwarp, 0.3, 0)
 
+    left_fit = np.polyfit(ploty * cfg.ym_per_pix, left_fitx * cfg.xm_per_pix, 2)
+    right_fit = np.polyfit(ploty * cfg.ym_per_pix, right_fitx * cfg.xm_per_pix, 2)
     # Compute curvature for the right and left lines
     left_curve, right_curve = measure_curvature(left_fit, right_fit, ploty)
     # Compute vehicle offset relative to the middle of the lane
@@ -42,7 +44,7 @@ def annotate_frame(undist, left_line, right_line):
     # plot curvature info
     label_str = 'Left line radius: %.1f km' % (left_curve/1000)
     result = cv2.putText(result, label_str, (15, 45), 0, 1, (255, 255, 255), 2)
-    label_str = 'Right line radius: %.1f m' % (right_curve/1000)
+    label_str = 'Right line radius: %.1f km' % (right_curve/1000)
     result = cv2.putText(result, label_str, (15, 85), 0, 1, (255, 255, 255), 2)
 
     # Annotate vehicle offset from center
